@@ -7,7 +7,10 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Button,
+  WebView,
 } from 'react-native';
+import PayuMoney from 'react-native-payumoney';
 import { WebBrowser } from 'expo';
 
 import { MonoText } from '../components/StyledText';
@@ -17,49 +20,68 @@ export default class HomeScreen extends React.Component {
     header: null,
   };
 
+  makePayment = () =>{
+    let amount = 99.9;
+    let txid = new Date().getTime()+"";
+    let productId = "product101";
+    let name = "asdf";
+    let email = "hello@world.com";
+    let phone = "1231231231";
+    let surl = "https://www.example.com/payu-validate.php"; //can be diffrennt for Succes
+    let furl = "https://www.example.com/payu-validate.php"; //can be diffrennt for Failed
+    let id = "XXXXX"; //Your Merchant ID here
+    let key = "XXXXX"; //Your Key Here
+    let sandbox = true; //Make sure to set false on production or you will get error
+    fetch('http://hardigurdi.com/hardigurdi.com/weham/MarketGo/public/api/payment_MU', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            key: key,
+            txnid: txid,
+            amount: amount,
+            productinfo: productId,
+            firstname: name,
+            email: email
+        }),
+    })
+        .then((response) => response.text())
+        .then((hash) => {
+
+          console.log("hash:",hash);
+            let options = {
+                amount: amount,
+                txid: txid ,
+                productId: productId,
+                name: name,
+                email: email,
+                phone: phone,
+                id: id,
+                key: key,
+                surl: surl,
+                furl: furl,
+                sandbox: sandbox,
+                hash: hash
+            };
+            console.log(options);
+            PayuMoney.pay(options).then((d) => {
+                console.log(d); // WIll get a Success response with verification hash
+            }).catch(e => {
+                console.log(e); //In case of failture 
+            });
+        })
+  }
   render() {
     return (
       <View style={styles.container}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.welcomeContainer}>
-            <Image
-              source={
-                __DEV__
-                  ? require('../assets/images/robot-dev.png')
-                  : require('../assets/images/robot-prod.png')
-              }
-              style={styles.welcomeImage}
-            />
-          </View>
+          <WebView 
+            source={{uri: 'https://hardigurdi.com/hardigurdi.com/weham/MarketGo/public/api/payment_getway'}}
+            // source={{uri: 'https://google.com'}}
+            style={{marginTop: 20}}
+          />
 
-          <View style={styles.getStartedContainer}>
-            {this._maybeRenderDevelopmentModeWarning()}
-
-            <Text style={styles.getStartedText}>Get started by opening</Text>
-
-            <View style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-              <MonoText style={styles.codeHighlightText}>screens/HomeScreen.js</MonoText>
-            </View>
-
-            <Text style={styles.getStartedText}>
-              Change this text and your app will automatically reload.
-            </Text>
-          </View>
-
-          <View style={styles.helpContainer}>
-            <TouchableOpacity onPress={this._handleHelpPress} style={styles.helpLink}>
-              <Text style={styles.helpLinkText}>Help, it didn’t automatically reload!</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-
-        <View style={styles.tabBarInfoContainer}>
-          <Text style={styles.tabBarInfoText}>This is a tab bar. You can edit it in:</Text>
-
-          <View style={[styles.codeHighlightContainer, styles.navigationFilename]}>
-            <MonoText style={styles.codeHighlightText}>navigation/MainTabNavigator.js</MonoText>
-          </View>
-        </View>
       </View>
     );
   }
